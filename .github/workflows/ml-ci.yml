@@ -1,0 +1,139 @@
+name: ML Project CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ------------------------------------------------------------------
+  # Job 1: Lint Python source files
+  # ------------------------------------------------------------------
+  lint:
+    name: "Lint Python (flake8)"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+
+      - name: Install flake8
+        run: pip install flake8
+
+      - name: Run flake8
+        run: |
+          flake8 src/ tests/ \
+            --max-line-length=100 \
+            --ignore=E501,W503 \
+            --count
+
+  # ------------------------------------------------------------------
+  # Job 2: Run unit tests with pytest
+  # ------------------------------------------------------------------
+  test:
+    name: "Run Unit Tests (pytest)"
+    runs-on: ubuntu-latest
+    needs: lint
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install numpy pandas scikit-learn pytest
+
+      - name: Run tests
+        run: |
+          pytest tests/ -v --tb=short
+
+  # ------------------------------------------------------------------
+  # Job 3: Validate notebook structure
+  # ------------------------------------------------------------------
+  validate-notebooks:
+    name: "Validate Notebooks"
+    runs-on: ubuntu-latest
+    needs: lint
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Validate notebooks are valid JSON
+        run: |
+          python3 << 'EOF'
+          import json, glob, sys
+
+          notebooks = glob.glob('*.ipynb')
+          errors = 0
+
+          for nb_path in sorted(notebooks):
+              try:
+                  with open(nb_path) as f:
+                      nb = json.load(f)
+
+                  # Check required fields
+                  assert 'nbformat' in nb, f'{nb_path}: missing nbformat'
+                  assert 'cells' in nb,    f'{nb_path}: missing cells'
+
+                  code_cells = [c for c in nb['cells'] if c['cell_type'] == 'code']
+                  md_cells   = [c for c in nb['cells'] if c['cell_type'] == 'markdown']
+
+                  print(f'  ✅ {nb_path:<45} | code: {len(code_cells):>2} | markdown: {len(md_cells):>2}')
+
+              except (json.JSONDecodeError, AssertionError) as e:
+                  print(f'  ❌ {nb_path}: {e}')
+                  errors += 1
+
+          print(f'\nTotal notebooks: {len(notebooks)}, Errors: {errors}')
+          sys.exit(errors)
+          EOF
+
+  # ------------------------------------------------------------------
+  # Job 4: Code statistics (informational)
+  # ------------------------------------------------------------------
+  code-stats:
+    name: "Code Statistics"
+    runs-on: ubuntu-latest
+    needs: [test, validate-notebooks]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Print statistics
+        run: |
+          echo "======================================"
+          echo "      ML Project Code Statistics"
+          echo "======================================"
+          echo ""
+          echo "Python source files (src/):"
+          find src/ -name '*.py' | sort | while read f; do
+            printf "  %-35s %4d lines\n" "$f" "$(wc -l < $f)"
+          done
+          echo ""
+          echo "Test files (tests/):"
+          find tests/ -name '*.py' | sort | while read f; do
+            printf "  %-35s %4d lines\n" "$f" "$(wc -l < $f)"
+          done
+          echo ""
+          echo "Notebooks:"
+          ls *.ipynb 2>/dev/null | sort | while read f; do
+            printf "  %s\n" "$f"
+          done
+          echo "======================================"

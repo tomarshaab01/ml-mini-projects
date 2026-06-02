@@ -1,79 +1,99 @@
 # 🧠 ML Mini Projects
 
-> A collection of **Python machine learning notebooks** covering data preprocessing, feature engineering, classification, and regression — built as part of my AI & ML journey at AKGEC-AKTU.
+> A structured collection of **5 end-to-end Machine Learning notebooks** in Python — from raw data preprocessing to neural network training — with reusable utilities, full test coverage, and automated CI.
 
-![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![Jupyter](https://img.shields.io/badge/Jupyter-F37626?style=for-the-badge&logo=jupyter&logoColor=white)
-![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=for-the-badge&logo=scikitlearn&logoColor=white)
-![Pandas](https://img.shields.io/badge/Pandas-150458?style=for-the-badge&logo=pandas&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python) ![scikit-learn](https://img.shields.io/badge/scikit--learn-1.3+-orange?logo=scikitlearn) ![PyTorch](https://img.shields.io/badge/PyTorch-2.1+-red?logo=pytorch) ![CI](https://github.com/tomarshaab01/ml-mini-projects/actions/workflows/ml-ci.yml/badge.svg) ![License](https://img.shields.io/badge/License-MIT-green)
 
 ---
 
-## 📂 Projects
+## 📚 Notebooks
 
-| # | Project | Concepts Covered | Notebook |
-|---|---------|-----------------|----------|
-| 01 | Data Preprocessing Pipeline | Null handling, encoding, scaling | `01_data_preprocessing.ipynb` |
-| 02 | Classification — Iris Dataset | KNN, Decision Tree, SVM | `02_classification_iris.ipynb` |
-| 03 | Regression — House Prices | Linear Regression, feature selection | `03_regression_house_prices.ipynb` |
-| 04 | EDA — Titanic Dataset | Pandas profiling, correlation, visualisation | `04_eda_titanic.ipynb` |
-
----
-
-## 🎯 Learning Goals
-
-- Understand the **end-to-end ML workflow**: data → clean → feature engineer → train → evaluate
-- Build intuition for **model selection** and **hyperparameter tuning**
-- Practice clean, reproducible **Jupyter notebooks**
-- Strengthen Python + NumPy + Pandas skills alongside algorithms
+| # | Notebook | Algorithms | Dataset |
+|---|----------|------------|---------|
+| 01 | [Data Preprocessing](01_data_preprocessing.ipynb) | Imputation · LabelEncoder · StandardScaler | Synthetic HR data |
+| 02 | [Classification](02_classification_iris.ipynb) | KNN · Decision Tree · SVM + CV | Iris |
+| 03 | [Regression](03_regression_housing.ipynb) | Linear · Ridge · Lasso · Random Forest | California Housing |
+| 04 | [Clustering](04_clustering_kmeans.ipynb) | K-Means · DBSCAN · Elbow · Silhouette | Synthetic customers |
+| 05 | [Neural Network](05_neural_network_mnist.ipynb) | PyTorch FC-Net · BatchNorm · Dropout · Adam | MNIST |
 
 ---
 
-## 🛠️ Tech Stack
+## 🗂️ Project Structure
 
-| Library | Purpose |
-|---------|---------|
-| Python 3.10+ | Core language |
-| Jupyter / Google Colab | Notebook environment |
-| Pandas | Data manipulation & EDA |
-| NumPy | Numerical operations |
-| scikit-learn | ML models, pipelines, metrics |
-| Matplotlib / Seaborn | Data visualisation |
+```
+ml-mini-projects/
+├── 01–05 *.ipynb            ← Notebooks (run in order)
+├── src/
+│   ├── preprocessor.py      ← DataPreprocessor class
+│   ├── evaluator.py         ← compare_models, evaluate_classifier/regressor
+│   └── visualizer.py        ← confusion matrix, feature importance, training curves, clusters
+├── tests/
+│   ├── test_preprocessor.py ← 4 unit tests
+│   └── test_evaluator.py    ← 4 unit tests
+├── docs/SETUP.md            ← Full setup & usage guide
+├── .github/workflows/       ← CI: lint → test → validate notebooks → stats
+├── requirements.txt
+├── setup.py
+└── .gitignore
+```
 
 ---
 
-## 🚀 Quick Start
+## ⚡ Quick Start
 
 ```bash
-# 1. Clone the repo
 git clone https://github.com/tomarshaab01/ml-mini-projects.git
 cd ml-mini-projects
-
-# 2. Create a virtual environment (optional but recommended)
-python -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
-
-# 3. Install dependencies
+python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-
-# 4. Launch Jupyter
 jupyter notebook
 ```
 
-Or open any `.ipynb` directly in **Google Colab** — no setup needed.
+---
+
+## 🔁 Reusable Utilities (`src/`)
+
+```python
+import sys; sys.path.insert(0, 'src')
+
+from preprocessor import DataPreprocessor
+from evaluator    import compare_models
+from visualizer   import plot_confusion_matrix, plot_training_curves
+
+# One-line preprocessing
+X_train, X_test, y_train, y_test = DataPreprocessor().fit_transform(df, target_col='label')
+
+# One-line model comparison
+results = compare_models({'RF': rf_model, 'SVM': svm_model}, X_train, X_test, y_train, y_test)
+```
 
 ---
 
-## 📄 Key Takeaways
+## 🤖 GitHub Actions CI
 
-- **Missing data** can be handled with mean/median imputation or row dropping depending on proportion
-- **Feature scaling** (StandardScaler, MinMaxScaler) matters significantly for distance-based models like KNN and SVM
-- **Train-test split + cross-validation** gives a more honest view of generalisation than a single split
-- **Exploratory Data Analysis** before modelling saves time and uncovers data quality issues early
+Every push triggers 4 automated jobs:
+
+| Job | What it checks |
+|-----|----------------|
+| **Lint** | `flake8` on all `src/` and `tests/` Python files |
+| **Test** | `pytest` — 8 unit tests across preprocessor & evaluator |
+| **Validate Notebooks** | All `.ipynb` files are valid JSON with correct structure |
+| **Code Stats** | Line counts per file (informational) |
 
 ---
 
-## 👤 Author
+## 📊 Results Summary
 
-**Bharat Tomar** — B.Tech AI & ML @ AKGEC-AKTU  
-🌐 [Portfolio](https://bharat-portfolio-odeo6l7qo-jio9027276478-6372s-projects.vercel.app) · [LinkedIn](https://www.linkedin.com/in/bharat-tomar-026a87366) · [GitHub](https://github.com/tomarshaab01)
+| Task | Best Model | Metric |
+|------|-----------|--------|
+| Classification (Iris) | SVM (RBF) | ~97% accuracy |
+| Regression (Housing) | Random Forest | R² ~0.80 |
+| Clustering (Customers) | K-Means (k=3) | Silhouette ~0.55 |
+| Neural Network (MNIST) | FC-Net (PyTorch) | ~98.5% accuracy |
+
+---
+
+## 👨‍💻 Author
+
+**Bharat Tomar** · B.Tech AI & ML @ AKGEC-AKTU  
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Bharat_Tomar-blue?logo=linkedin)](https://www.linkedin.com/in/bharat-tomar-026a87366) [![GitHub](https://img.shields.io/badge/GitHub-tomarshaab01-black?logo=github)](https://github.com/tomarshaab01)
